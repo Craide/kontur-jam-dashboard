@@ -1,0 +1,75 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jam}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jam}
+      POSTGRES_DB: ${POSTGRES_DB:-jam}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jam} -d ${POSTGRES_DB:-jam}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/craide/kontur-jam-dashboard:latest
+    build: .
+    environment:
+      DB_URL: postgresql+psycopg2://${POSTGRES_USER:-jam}:${POSTGRES_PASSWORD:-jam}@db:5432/${POSTGRES_DB:-jam}
+      RATE_RPS: ${RATE_RPS:-5}
+      RATE_BURST: ${RATE_BURST:-20}
+    ports:
+      - "${API_PORT:-8018}:8018"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8018/api/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  collector:
+    image: ghcr.io/craide/kontur-jam-dashboard:latest
+    build: .
+    command: ["python", "-m", "collector.loop"]
+    environment:
+      DB_URL: postgresql+psycopg2://${POSTGRES_USER:-jam}:${POSTGRES_PASSWORD:-jam}@db:5432/${POSTGRES_DB:-jam}
+      JAM_ID: ${JAM_ID:-12}
+      DUSTORE_SESSION: ${DUSTORE_SESSION:-}
+      API_EVERY: ${API_EVERY:-600}
+      VOTE_EVERY: ${VOTE_EVERY:-900}
+      GAMES_EVERY: ${GAMES_EVERY:-21600}
+      SCAN_EVERY: ${SCAN_EVERY:-86400}
+      SCAN_RANGE: ${SCAN_RANGE:-1-350}
+      MIN_INTERVAL: ${MIN_INTERVAL:-0.7}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  backup:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jam}
+      POSTGRES_DB: ${POSTGRES_DB:-jam}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-jam}
+      BACKUP_EVERY: ${BACKUP_EVERY:-300}
+      BACKUP_KEEP: ${BACKUP_KEEP:-5}
+    volumes:
+      - pgbackups:/backups
+      - ./db/backup.sh:/backup.sh:ro
+    entrypoint: ["sh", "/backup.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  pgbackups:

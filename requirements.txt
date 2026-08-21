@@ -1,0 +1,7 @@
+requests
+SQLAlchemy>=2.0
+fastapi
+uvicorn[standard]
+plotly
+pandas
+psycopg2-binary

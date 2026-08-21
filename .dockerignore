@@ -1,0 +1,8 @@
+.git
+.idea
+.claude
+venv
+data
+__pycache__
+*.pyc
+.env
