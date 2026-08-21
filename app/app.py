@@ -9,7 +9,6 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from db import db_worker as db
-
 from . import ratelimit
 
 JAM_ID = 12

@@ -8,7 +8,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from db import db_worker as db
-
 from . import parse_api, parse_game, parse_vote
 
 JAM_ID = 12

@@ -10,7 +10,6 @@ import traceback
 from datetime import datetime, timezone
 
 from db import db_worker as db
-
 from . import run
 
 JAM_ID = int(os.getenv("JAM_ID", "12"))
