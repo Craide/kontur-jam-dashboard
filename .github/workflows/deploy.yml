@@ -46,6 +46,7 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
+            git pull
             docker compose pull api collector
             docker compose up -d --remove-orphans
             docker image prune -f
