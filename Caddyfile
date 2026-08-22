@@ -1,0 +1,3 @@
+kontur-jam-dashboard.ru, www.kontur-jam-dashboard.ru {
+    reverse_proxy api:8018
+}

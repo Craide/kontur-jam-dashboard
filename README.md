@@ -14,3 +14,24 @@
 - Адаптивный дизайн — работает на любых устройствах
 
 ---
+
+## Запуск
+
+Проект живёт в Docker: FastAPI + коллектор + Postgres + Caddy (HTTPS-прокси).
+
+```bash
+cp .env.example .env 
+docker compose up -d --build
+```
+
+Дашборд поднимется на `http://localhost:8018`. Если в `Caddyfile` указан домен с рабочими DNS-записями (`A` на IP сервера), Caddy сам получит сертификат Let's Encrypt и обслужит его по HTTPS на 80/443.
+
+Коллектор собирает данные с `dustore.ru` по расписанию из `.env` (`API_EVERY`, `VOTE_EVERY`, `GAMES_EVERY`, `SCAN_EVERY`). Баллы джема требуют `DUSTORE_SESSION` — куку `PHPSESSID` авторизованной сессии на dustore.ru, иначе эта задача просто пропускается.
+
+Разовые операции — сканы, ручной импорт и т. п. — через `collector/run.py`:
+
+```bash
+docker compose exec collector python -m collector.run --scan 1-350
+```
+
+---

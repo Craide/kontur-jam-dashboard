@@ -22,7 +22,7 @@ services:
       RATE_RPS: ${RATE_RPS:-5}
       RATE_BURST: ${RATE_BURST:-20}
     ports:
-      - "${API_PORT:-8018}:8018"
+      - "127.0.0.1:${API_PORT:-8018}:8018"
     depends_on:
       db:
         condition: service_healthy
@@ -70,6 +70,21 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+    restart: unless-stopped
+
 volumes:
   pgdata:
   pgbackups:
+  caddy_data:
+  caddy_config:
