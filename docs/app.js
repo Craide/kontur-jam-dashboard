@@ -63,7 +63,7 @@ async function load() {
     fetch('/api/games/series?key=jam_points').then(r => r.json()),
     fetch(`/api/jam/${JAM}/downloads_daily`).then(r => r.json()),
   ]);
-  // средний балл = очки джема на одного голосовавшего
+  // очков на голос = очки джема, делённые на число голосовавших за работу
   games.forEach(g => {
     if (g.metrics.jam_voters) g.metrics.avg_points = g.metrics.jam_points / g.metrics.jam_voters;
   });
@@ -82,7 +82,7 @@ function render(info, m, games) {
   kpis([
     ['Работы', m['overview.builds_approved']],
     ['Проголосовавшие', m['activity.voters_total']],
-    ['Баллы', m['vote.points_total']],
+    ['Очки', m['vote.points_total']],
     ['Скачивания', dl.reduce((a, b) => a + b, 0)],
   ]);
 
@@ -143,15 +143,28 @@ function fillGames(games) {
 function paintGames() {
   const games = STATE.games, mine = Number(STATE.mine);
 
-  // на диаграммах топ-N считаем по скачиваниям; наша работа показывается всегда
-  const shown = cut([...games].sort((a, b) => (val(b, 'downloads') || 0) - (val(a, 'downloads') || 0)),
+  // все топы работают по очкам джема; наша работа показывается всегда
+  const shown = cut([...games].sort((a, b) => (val(b, 'jam_points') || 0) - (val(a, 'jam_points') || 0)),
                     STATE.topWorks);
+
+  scatter('ch-votes-avgpts', shown, mine, {
+    xKey: 'jam_voters', xTitle: 'голосов', xUnit: 'голос.',
+    yKey: 'avg_points', sizeKey: 'jam_points', sizeMul: .04, yTitle: 'средние очки',
+    label: g => `${val(g, 'avg_points').toFixed(1)} очк. на голос · ${fmt(val(g, 'jam_points'))} очк. всего`,
+  });
+  scatter('ch-reviews-rating', shown, mine, {
+    xKey: 'ratings_count', xTitle: 'отзывов', xUnit: 'отзывов',
+    yKey: 'rating_avg', sizeKey: 'downloads', sizeMul: .04, yTitle: 'оценка',
+    label: g => `${val(g, 'rating_avg')}/10 · ${fmt(val(g, 'downloads'))} скач.`,
+  });
   scatter('ch-scatter', shown, mine, {
-    yKey: 'rating_avg', sizeKey: 'ratings_count', sizeMul: .6, yTitle: 'средний балл',
+    xKey: 'downloads', xTitle: 'скачивания', xUnit: 'скач.',
+    yKey: 'rating_avg', sizeKey: 'ratings_count', sizeMul: .6, yTitle: 'оценка',
     label: g => `${val(g, 'rating_avg')}/10 · ${fmt(val(g, 'ratings_count'))} отзывов`,
   });
   scatter('ch-avgpts', shown, mine, {
-    yKey: 'avg_points', sizeKey: 'jam_voters', sizeMul: .35, yTitle: 'очков на голосующего',
+    xKey: 'downloads', xTitle: 'скачивания', xUnit: 'скач.',
+    yKey: 'avg_points', sizeKey: 'jam_voters', sizeMul: .35, yTitle: 'средние очки',
     label: g => `${val(g, 'avg_points').toFixed(1)} очк. на голос · ${fmt(val(g, 'jam_voters'))} голос.`,
   });
 
@@ -162,9 +175,9 @@ function paintGames() {
   const cols = [
     ['game_id', 'ID', true], ['title', 'Работа', false], ['genre', 'Жанр', false],
     ...(hasLb ? [['jam_points', 'Очки', true], ['jam_voters', 'Голосов', true],
-                 ['avg_points', 'Ср. балл', true]] : []),
+                 ['avg_points', 'Ср. очки', true]] : []),
     ['downloads', 'Скач.', true],
-    ['rating_avg', 'Ср. отзыв', true], ['ratings_count', 'Отзывов', true], ['build_bytes', 'Размер', true],
+    ['rating_avg', 'Оценка', true], ['ratings_count', 'Отзывов', true], ['build_bytes', 'Размер', true],
   ];
   const sKey = STATE.sort.key || (hasLb ? 'jam_points' : 'downloads');
   const dir = STATE.sort.key ? STATE.sort.dir : -1;
@@ -202,13 +215,13 @@ function sortBy(k) {
   paintGames();
 }
 
-/** Диаграмма «скачивания × метрика»: серые точки и наша работа акцентом. */
-function scatter(id, list, mine, { yKey, sizeKey, sizeMul, yTitle, label }) {
-  const ok = list.filter(g => val(g, yKey) != null && val(g, 'downloads') != null);
+/** Диаграмма «метрика × метрика»: серые точки и наша работа акцентом. */
+function scatter(id, list, mine, { xKey, xTitle, xUnit, yKey, sizeKey, sizeMul, yTitle, label }) {
+  const ok = list.filter(g => val(g, yKey) != null && val(g, xKey) != null);
   const trace = (gs, color, ring) => ({
     type: 'scatter', mode: 'markers', hoverinfo: 'text',
-    x: gs.map(g => val(g, 'downloads')), y: gs.map(g => val(g, yKey)),
-    text: gs.map(g => `${g.title}<br>${fmt(val(g, 'downloads'))} скач. · ${label(g)}`),
+    x: gs.map(g => val(g, xKey)), y: gs.map(g => val(g, yKey)),
+    text: gs.map(g => `${g.title}<br>${fmt(val(g, xKey))} ${xUnit} · ${label(g)}`),
     marker: { color, opacity: .85, line: { width: ring ? 2 : 0, color: '#151515' },
               size: gs.map(g => Math.min(26, 7 + (val(g, sizeKey) || 0) * sizeMul)) },
   });
@@ -216,7 +229,7 @@ function scatter(id, list, mine, { yKey, sizeKey, sizeMul, yTitle, label }) {
   const me = ok.find(g => g.game_id === mine);
   if (me) traces.push(trace([me], ACCENT, true));
   draw(id, traces, {
-    xaxis: { title: { text: 'скачивания', font: { size: 10 } } },
+    xaxis: { title: { text: xTitle, font: { size: 10 } } },
     yaxis: { title: { text: yTitle, font: { size: 10 } }, range: [0, 10.5] },
   });
 }
@@ -227,13 +240,13 @@ function drawDownloads() {
   draw('ch-dl', bars(rows.map(r => [dm(r.date), r.delta]), { unit: 'скачиваний' }), CAT);
 }
 
-/** Горизонтальные бары: баллы топ-N работ. */
+/** Горизонтальные бары: очки топ-N работ. */
 function drawLb() {
   const mine = Number(STATE.mine), n = STATE.topLb;
   const ranked = STATE.games.filter(g => val(g, 'jam_points') != null)
     .sort((a, b) => val(b, 'jam_points') - val(a, 'jam_points'));
   const top = cut(ranked, n).reverse();
-  $('lb-title').textContent = `Баллы по работам, ${n ? 'топ-' + n : 'все'}`;
+  $('lb-title').textContent = `Очки по работам, ${n ? 'топ-' + n : 'все'}`;
   draw('ch-lb', [{
     type: 'bar', orientation: 'h',
     y: top.map(g => g.title.length > 26 ? g.title.slice(0, 25) + '…' : g.title),
@@ -247,7 +260,7 @@ function drawLb() {
   }], { margin: { l: 180, r: 60, t: 8, b: 30 }, bargap: .35 });
 }
 
-/** Линии баллов по дням для топ-N работ. */
+/** Линии очков по дням для топ-N работ. */
 function drawTrend() {
   const series = STATE.trend || {};
   const mine = Number(STATE.mine);

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 <link rel="icon" type="image/jpeg" href="icon.jpg">
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
 </head>
@@ -34,14 +34,14 @@
     <h2>Лидерборд джема</h2>
     <div class="card">
       <div class="card-head">
-        <h3 id="lb-title">Баллы по работам</h3>
+        <h3 id="lb-title">Очки по работам</h3>
         <div class="seg" id="seg-lb"></div>
       </div>
       <div class="chart tall" id="ch-lb"></div>
     </div>
     <div class="card" style="margin-top:14px">
       <div class="card-head">
-        <h3>Динамика баллов по дням</h3>
+        <h3>Динамика очков по дням</h3>
         <div class="seg" id="seg-top"></div>
       </div>
       <div class="chart tall" id="ch-trend"></div>
@@ -56,11 +56,13 @@
       <div class="seg" id="seg-works" style="margin-left:auto"></div>
     </div>
     <div class="grid g2">
-      <div class="card"><h3>Скачивания и средний балл</h3><div class="chart tall" id="ch-avgpts"></div></div>
-      <div class="card"><h3>Скачивания и средний балл отзывов</h3><div class="chart tall" id="ch-scatter"></div></div>
+      <div class="card"><h3>Голоса и средние очки</h3><div class="chart tall" id="ch-votes-avgpts"></div></div>
+      <div class="card"><h3>Отзывы и оценка</h3><div class="chart tall" id="ch-reviews-rating"></div></div>
+      <div class="card"><h3>Скачивания и средние очки</h3><div class="chart tall" id="ch-avgpts"></div></div>
+      <div class="card"><h3>Скачивания и оценка</h3><div class="chart tall" id="ch-scatter"></div></div>
     </div>
     <div class="tbl-wrap" style="margin-top:14px"><table id="tbl"></table></div>
-    <div class="note">Средний балл — это отзывы каталога Dustore, а не баллы джема: жюри их не учитывает.</div>
+    <div class="note">Оценка — это отзывы каталога Dustore, а не очки джема: жюри их не учитывает.</div>
   </section>
 
   <section>
@@ -92,6 +94,6 @@
     </div>
   </footer>
 </div>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
