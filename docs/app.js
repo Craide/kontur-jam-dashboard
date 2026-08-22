@@ -14,13 +14,12 @@ const LAYOUT = {
 const CFG = { displayModeBar: false, responsive: true };
 
 const $ = id => document.getElementById(id);
-const dm = d => `${d.slice(8, 10)}.${d.slice(5, 7)}`;   // 2026-08-06 -> 06.08
+const dm = d => `${d.slice(8, 10)}.${d.slice(5, 7)}`;
 const CAT = { xaxis: { type: 'category' } };
 const fmt = n => n == null ? '—' : Math.round(n).toLocaleString('ru-RU');
 const draw = (id, traces, extra = {}) =>
   Plotly.newPlot($(id), traces, { ...LAYOUT, ...extra, xaxis: { ...LAYOUT.xaxis, ...extra.xaxis }, yaxis: { ...LAYOUT.yaxis, ...extra.yaxis } }, CFG);
 
-/** Ключи вида "tech.engines.Unity" -> {Unity: 45}, отсортированные по убыванию. */
 function pick(m, prefix, { sort = true, limit = 0 } = {}) {
   let e = Object.entries(m).filter(([k]) => k.startsWith(prefix + '.'))
     .map(([k, v]) => [k.slice(prefix.length + 1), v]);
@@ -29,7 +28,6 @@ function pick(m, prefix, { sort = true, limit = 0 } = {}) {
   return limit ? e.slice(0, limit) : e;
 }
 
-// unit — слово в подсказке; <extra></extra> убирает плашку с названием серии
 const bars = (e, { h = false, unit = '' } = {}) => h
   ? [{ type: 'bar', orientation: 'h', y: e.map(x => x[0]).reverse(), x: e.map(x => x[1]).reverse(),
        marker: { color: ACCENT }, hovertemplate: `%{y} · %{x} ${unit}<extra></extra>` }]
@@ -41,14 +39,8 @@ let STATE = { games: [], mine: localStorage.getItem('my_game') || '', trend: nul
 
 const cut = (arr, n) => n ? arr.slice(0, n) : arr;
 const val = (g, k) => g.metrics[k] ?? null;
-
-/** Приглушённая палитра для множества линий: наша работа всегда акцентом. */
 const lineColor = i => `hsl(${(18 + i * 137.5) % 360} 42% 62%)`;
-
-// ts от сервера в UTC, а сутки джема — московские; сдвигаем перед тем, как резать дату
 const mskDate = ts => new Date(new Date(ts).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
-
-/** Ряд метрики -> {дата по МСК: последнее значение за день}. */
 const byDay = pts => {
   const m = new Map();
   pts.forEach(p => m.set(mskDate(p.ts), p.value));
@@ -63,7 +55,6 @@ async function load() {
     fetch('/api/games/series?key=jam_points').then(r => r.json()),
     fetch(`/api/jam/${JAM}/downloads_daily`).then(r => r.json()),
   ]);
-  // очков на голос = очки джема, делённые на число голосовавших за работу
   games.forEach(g => {
     if (g.metrics.jam_voters) g.metrics.avg_points = g.metrics.jam_points / g.metrics.jam_voters;
   });
@@ -77,7 +68,6 @@ function render(info, m, games) {
   $('sub').textContent = `${games.length} работ · данные на ${new Date(info.date_up).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) + ' МСК'}`;
   countdown(info.voting_end);
 
-  // скачивания считаем сами по работам: в API это события, их в разы больше
   const dl = games.map(g => g.metrics.downloads).filter(v => v != null);
   kpis([
     ['Работы', m['overview.builds_approved']],
@@ -101,7 +91,6 @@ function render(info, m, games) {
   draw('ch-engines', bars(pick(m, 'tech.engines', { limit: 8 }), { h: true, unit: 'работ' }), { margin: { l: 110, r: 12, t: 8, b: 30 } });
   draw('ch-genres', bars(pick(m, 'tech.genres', { limit: 8 }), { h: true, unit: 'работ' }), { margin: { l: 130, r: 12, t: 8, b: 30 } });
   draw('ch-geo', bars(pick(m, 'geo.top', { limit: 10 }), { h: true, unit: 'человек' }), { margin: { l: 120, r: 12, t: 8, b: 30 } });
-  // порядок ведёр задаём явно: по имени ключа он выходит неверным
   const BUCKETS = [['lt_100mb', '<100 МБ'], ['100_300mb', '100–300 МБ'], ['300mb_1gb', '300 МБ – 1 ГБ'], ['gt_1gb', '>1 ГБ']];
   const bk = Object.fromEntries(pick(m, 'builds.buckets', { sort: false }));
   draw('ch-buckets', bars(BUCKETS.filter(([k]) => bk[k] != null).map(([k, l]) => [l, bk[k]]), { unit: 'работ' }),
@@ -143,7 +132,6 @@ function fillGames(games) {
 function paintGames() {
   const games = STATE.games, mine = Number(STATE.mine);
 
-  // все топы работают по очкам джема; наша работа показывается всегда
   const shown = cut([...games].sort((a, b) => (val(b, 'jam_points') || 0) - (val(a, 'jam_points') || 0)),
                     STATE.topWorks);
 
@@ -157,15 +145,12 @@ function paintGames() {
     yKey: 'rating_avg', sizeKey: 'downloads', sizeMul: .04, yTitle: 'оценка',
     label: g => `${val(g, 'rating_avg')}/10 · ${fmt(val(g, 'downloads'))} скач.`,
   });
-  scatter('ch-scatter', shown, mine, {
+
+  // НОВЫЙ ГРАФИК: Скачивания и очки (вместо двух старых)
+  scatter('ch-scatter-pts', shown, mine, {
     xKey: 'downloads', xTitle: 'скачивания', xUnit: 'скач.',
-    yKey: 'rating_avg', sizeKey: 'ratings_count', sizeMul: .6, yTitle: 'оценка',
-    label: g => `${val(g, 'rating_avg')}/10 · ${fmt(val(g, 'ratings_count'))} отзывов`,
-  });
-  scatter('ch-avgpts', shown, mine, {
-    xKey: 'downloads', xTitle: 'скачивания', xUnit: 'скач.',
-    yKey: 'avg_points', sizeKey: 'jam_voters', sizeMul: .35, yTitle: 'средние очки',
-    label: g => `${val(g, 'avg_points').toFixed(1)} очк. на голос · ${fmt(val(g, 'jam_voters'))} голос.`,
+    yKey: 'jam_points', sizeKey: 'jam_voters', sizeMul: .4, yTitle: 'очки',
+    label: g => `${val(g, 'jam_points')} очк. · ${fmt(val(g, 'jam_voters'))} голос.`,
   });
 
   const hasLb = games.some(g => val(g, 'jam_points') != null);
@@ -209,13 +194,11 @@ function paintGames() {
 
 function sortBy(k) {
   const s = STATE.sort;
-  // повторный клик по той же колонке переворачивает порядок
   s.dir = s.key === k ? -s.dir : (['title', 'studio', 'genre'].includes(k) ? 1 : -1);
   s.key = k;
   paintGames();
 }
 
-/** Диаграмма «метрика × метрика»: серые точки и наша работа акцентом. */
 function scatter(id, list, mine, { xKey, xTitle, xUnit, yKey, sizeKey, sizeMul, yTitle, label }) {
   const ok = list.filter(g => val(g, yKey) != null && val(g, xKey) != null);
   const trace = (gs, color, ring) => ({
@@ -228,19 +211,20 @@ function scatter(id, list, mine, { xKey, xTitle, xUnit, yKey, sizeKey, sizeMul, 
   const traces = [trace(ok.filter(g => g.game_id !== mine), 'rgba(242,240,237,.45)')];
   const me = ok.find(g => g.game_id === mine);
   if (me) traces.push(trace([me], ACCENT, true));
+
+  // Для графика скачивания-очки задаём динамический диапазон по Y
+  const yRange = yKey === 'jam_points' ? null : [0, 10.5];
   draw(id, traces, {
     xaxis: { title: { text: xTitle, font: { size: 10 } } },
-    yaxis: { title: { text: yTitle, font: { size: 10 } }, range: [0, 10.5] },
+    yaxis: { title: { text: yTitle, font: { size: 10 } }, range: yRange },
   });
 }
 
-/** Свой ряд скачиваний: прирост за день по счётчикам работ. */
 function drawDownloads() {
   const rows = STATE.dl || [];
   draw('ch-dl', bars(rows.map(r => [dm(r.date), r.delta]), { unit: 'скачиваний' }), CAT);
 }
 
-/** Горизонтальные бары: очки топ-N работ. */
 function drawLb() {
   const mine = Number(STATE.mine), n = STATE.topLb;
   const ranked = STATE.games.filter(g => val(g, 'jam_points') != null)
@@ -260,7 +244,6 @@ function drawLb() {
   }], { margin: { l: 180, r: 60, t: 8, b: 30 }, bargap: .35 });
 }
 
-/** Линии очков по дням для топ-N работ. */
 function drawTrend() {
   const series = STATE.trend || {};
   const mine = Number(STATE.mine);
@@ -279,7 +262,6 @@ function drawTrend() {
       type: 'scatter', mode: days.length > 1 ? 'lines' : 'lines+markers',
       x: days.map(dm), y: days.map(d => (carry = s.day.get(d) ?? carry)),
       name: title(s.gid),
-      // имя внутри подсказки, пустой <extra> убирает второй бокс с заливкой
       hovertemplate: `<b>${title(s.gid)}</b><br>%{y} очк. · %{x}<extra></extra>`,
       line: { color: s.gid === mine ? ACCENT : lineColor(i), width: s.gid === mine ? 3 : 1.6 },
       hoverlabel: HL,
@@ -293,9 +275,8 @@ function drawTrend() {
   });
 }
 
-const TOPS = [5, 10, 20, 50, 0];  // 0 — все
+const TOPS = [5, 10, 20, 50, 0];
 
-/** Рисует переключатель топ-N и вешает обработчик. */
 function mkSeg(id, current, apply) {
   const el = $(id);
   el.innerHTML = TOPS.map(n =>
