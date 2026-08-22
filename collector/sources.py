@@ -24,8 +24,18 @@ def _throttle() -> None:
     _last = time.monotonic()
 
 
+def _drop_conflicting(cookies: dict | None) -> None:
+    """Анонимные куки от публичных страниц (/g/<id> и т.п.) оседают в общей
+    сессии и иначе задваивают Cookie-заголовок — сервер берёт первое значение,
+    не наше явно переданное. Чистим одноимённые перед запросом с явной курой."""
+    if cookies:
+        for name in cookies:
+            _session.cookies.pop(name, None)
+
+
 def get(path: str, *, allow_redirects: bool = True, tries: int = 3, cookies: dict | None = None):
     url = path if path.startswith("http") else BASE + path
+    _drop_conflicting(cookies)
     last_err = None
     for attempt in range(tries):
         _throttle()

@@ -30,7 +30,7 @@ def tasks() -> list[tuple[str, int, callable]]:
     return [
         ("api", _env_int("API_EVERY", 600), lambda: run.collect_api(JAM_ID)),
         ("vote", _env_int("VOTE_EVERY", 900), lambda: run.collect_vote(JAM_ID)),
-        ("games", _env_int("GAMES_EVERY", 21600), lambda: run.collect_games(JAM_ID)),
+        ("games", _env_int("GAMES_EVERY", 300), lambda: run.collect_games(JAM_ID)),
         ("scan", _env_int("SCAN_EVERY", 86400),
          lambda: run.scan_roster(JAM_ID, *(int(x) for x in SCAN_RANGE.split("-")))),
     ]
