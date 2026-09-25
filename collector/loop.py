@@ -10,7 +10,7 @@ import traceback
 from datetime import datetime, timezone
 
 from db import db_worker as db
-from . import run
+from . import auth, run
 
 JAM_ID = int(os.getenv("JAM_ID", "12"))
 SCAN_RANGE = os.getenv("SCAN_RANGE", "1-350")
@@ -41,9 +41,11 @@ def main() -> None:
     db.init_db()
 
     active = [(n, sec, fn) for n, sec, fn in tasks() if sec > 0]
-    if not os.getenv("DUSTORE_SESSION"):
+    if not auth.configured():
         active = [t for t in active if t[0] != "vote"]
-        log("vote: пропускаем, нет DUSTORE_SESSION")
+        log("vote: пропускаем, нет DUSTORE_EMAIL/DUSTORE_PASSWORD или DUSTORE_COOKIE")
+    else:
+        log("vote: авторизация " + ("по логину" if auth.credentials() else "по DUSTORE_COOKIE"))
     log("старт: " + ", ".join(f"{n} каждые {sec}с" for n, sec, _ in active))
 
     # первый прогон сразу, дальше по интервалам

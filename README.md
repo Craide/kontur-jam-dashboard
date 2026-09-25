@@ -26,7 +26,7 @@ docker compose up -d --build
 
 Дашборд поднимется на `http://localhost:8018`. Если в `Caddyfile` указан домен с рабочими DNS-записями (`A` на IP сервера), Caddy сам получит сертификат Let's Encrypt и обслужит его по HTTPS на 80/443.
 
-Коллектор собирает данные с `dustore.ru` по расписанию из `.env` (`API_EVERY`, `VOTE_EVERY`, `GAMES_EVERY`, `SCAN_EVERY`). Баллы джема требуют `DUSTORE_SESSION` — куку `PHPSESSID` авторизованной сессии на dustore.ru, иначе эта задача просто пропускается.
+Коллектор собирает данные с `dustore.ru` по расписанию из `.env` (`API_EVERY`, `VOTE_EVERY`, `GAMES_EVERY`, `SCAN_EVERY`). Баллы джема требуют авторизации на dustore.ru, иначе эта задача просто пропускается. Проще всего задать `DUSTORE_EMAIL` и `DUSTORE_PASSWORD`: коллектор сам входит и перелогинивается до истечения JWT (он живёт 72 ч). Запасной вариант — `DUSTORE_COOKIE`, строка `Cookie` запроса к `vote.php` из DevTools; её придётся обновлять вручную.
 
 Разовые операции — сканы, ручной импорт и т. п. — через `collector/run.py`:
 

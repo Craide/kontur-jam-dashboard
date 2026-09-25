@@ -41,7 +41,9 @@ services:
     environment:
       DB_URL: postgresql+psycopg2://${POSTGRES_USER:-jam}:${POSTGRES_PASSWORD:-jam}@db:5432/${POSTGRES_DB:-jam}
       JAM_ID: ${JAM_ID:-12}
-      DUSTORE_SESSION: ${DUSTORE_SESSION:-}
+      DUSTORE_EMAIL: ${DUSTORE_EMAIL:-}
+      DUSTORE_PASSWORD: ${DUSTORE_PASSWORD:-}
+      DUSTORE_COOKIE: ${DUSTORE_COOKIE:-}
       API_EVERY: ${API_EVERY:-600}
       VOTE_EVERY: ${VOTE_EVERY:-900}
       GAMES_EVERY: ${GAMES_EVERY:-300}

@@ -10,10 +10,18 @@ import requests
 BASE = "https://dustore.ru"
 UA = os.getenv("UA", "kontur-jam-dashboard/0.1 (jam participant; contact: calicatura13@gmail.com)")
 MIN_INTERVAL = float(os.getenv("MIN_INTERVAL", "0.7"))
+TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "60"))  # dustore бывает отвечает по 15+ с
 
-_session = requests.Session()
-_session.headers["User-Agent"] = UA
 _last = 0.0
+
+
+def new_session() -> requests.Session:
+    s = requests.Session()
+    s.headers["User-Agent"] = UA
+    return s
+
+
+_session = new_session()
 
 
 def _throttle() -> None:
@@ -24,27 +32,29 @@ def _throttle() -> None:
     _last = time.monotonic()
 
 
-def _drop_conflicting(cookies: dict | None) -> None:
-    """Анонимные куки от публичных страниц (/g/<id> и т.п.) оседают в общей
-    сессии и иначе задваивают Cookie-заголовок — сервер берёт первое значение,
-    не наше явно переданное. Чистим одноимённые перед запросом с явной курой."""
-    if cookies:
-        for name in cookies:
-            _session.cookies.pop(name, None)
-
-
-def get(path: str, *, allow_redirects: bool = True, tries: int = 3, cookies: dict | None = None):
+def request(method: str, path: str, *, allow_redirects: bool = True, tries: int = 3,
+            client: requests.Session | None = None, data: dict | None = None):
+    """client — своя сессия (авторизованная), чтобы её куки не смешивались
+    с анонимными от публичных страниц; троттлинг общий."""
     url = path if path.startswith("http") else BASE + path
-    _drop_conflicting(cookies)
     last_err = None
     for attempt in range(tries):
         _throttle()
         try:
-            return _session.get(url, timeout=20, allow_redirects=allow_redirects, cookies=cookies)
+            return (client or _session).request(method, url, data=data, timeout=TIMEOUT,
+                                                allow_redirects=allow_redirects)
         except requests.RequestException as e:
             last_err = e
             time.sleep(2 ** attempt)
     raise last_err
+
+
+def get(path: str, **kw):
+    return request("GET", path, **kw)
+
+
+def post(path: str, **kw):
+    return request("POST", path, **kw)
 
 
 def get_json(path: str):
