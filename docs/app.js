@@ -160,9 +160,9 @@ function paintGames() {
   const cols = [
     ['game_id', 'ID', true], ['title', 'Работа', false], ['genre', 'Жанр', false],
     ...(hasLb ? [['jam_points', 'Очки', true], ['jam_voters', 'Голосов', true],
-                 ['avg_points', 'Ср. очки', true]] : []),
+                 ['avg_points', 'Ср. очки', true], ['expert_points', 'Очки экспертов', true]] : []),
     ['downloads', 'Скач.', true],
-    ['rating_avg', 'Оценка', true], ['ratings_count', 'Отзывов', true], ['build_bytes', 'Размер', true],
+    ['rating_avg', 'Оценка', true], ['ratings_count', 'Отзывов', true],
   ];
   const sKey = STATE.sort.key || (hasLb ? 'jam_points' : 'downloads');
   const dir = STATE.sort.key ? STATE.sort.dir : -1;
@@ -174,15 +174,15 @@ function paintGames() {
     return dir * ((x ?? -Infinity) - (y ?? -Infinity));
   });
   const cell = (g, k) => {
-    if (k === 'build_bytes') { const v = val(g, k); return v ? (v / 1024 ** 2 > 1024 ? (v / 1024 ** 3).toFixed(1) + ' ГБ' : Math.round(v / 1024 ** 2) + ' МБ') : '—'; }
     if (k === 'avg_points') { const v = val(g, k); return v == null ? '—' : v.toFixed(1); }
-    if (['downloads', 'rating_avg', 'ratings_count', 'jam_points', 'jam_voters'].includes(k)) {
+    if (['downloads', 'rating_avg', 'ratings_count', 'jam_points', 'jam_voters', 'expert_points'].includes(k)) {
       const v = val(g, k); return v == null ? '—' : (k === 'rating_avg' ? v : fmt(v));
     }
     if (k === 'title') return `<a href="https://dustore.ru/g/${g.game_id}" target="_blank" rel="noopener" style="color:inherit">${g[k]}</a>`;
     return g[k] ?? '—';
   };
-  const arrow = k => k === sKey ? (dir < 0 ? ' ↓' : ' ↑') : '';
+  // стрелка есть у каждого заголовка, у несортированных невидима — ширина колонок не прыгает
+  const arrow = k => `<span class="arr">${k === sKey && dir > 0 ? '↑' : '↓'}</span>`;
   $('tbl').innerHTML =
     `<thead><tr>${cols.map(([k, l, n]) =>
       `<th class="${n ? 'num' : ''}${k === sKey ? ' on' : ''}" data-k="${k}">${l}${arrow(k)}</th>`).join('')}</tr></thead>` +
