@@ -64,6 +64,13 @@ td.num,th.num{text-align:right}
 tr.mine td{background:rgba(217,119,87,.10)}
 tr.mine td:first-child{box-shadow:inset 2px 0 0 var(--accent)}
 .muted{color:var(--muted)}
+.medal{position:relative;display:inline-block;margin-left:6px;font-size:.85em;cursor:help;outline:none}
+/* справа, а не сверху: .tbl-wrap с overflow обрезал бы подсказку у первой строки */
+.medal::after{content:attr(data-tip);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);
+  background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 9px;
+  font-size:.75rem;width:max-content;max-width:240px;white-space:normal;line-height:1.35;pointer-events:none;opacity:0;transition:opacity .12s;z-index:5;
+  box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.medal:hover::after,.medal:focus::after{opacity:1}
 .tbl-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   padding:6px 6px 10px;overflow-x:auto}
 

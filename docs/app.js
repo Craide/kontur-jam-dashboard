@@ -39,6 +39,14 @@ let STATE = { games: [], mine: localStorage.getItem('my_game') || '', trend: nul
 
 const cut = (arr, n) => n ? arr.slice(0, n) : arr;
 const val = (g, k) => g.metrics[k] ?? null;
+
+// итоги джема с dustore (объявлены 01.10.2026)
+const WINNERS = {
+  203: 'Победитель в номинации «Выбор сообщества Dustore»',
+  242: 'Победитель в номинации «Выбор К.О.Н.Т.У.Р.»',
+};
+const medal = gid => WINNERS[gid]
+  ? `<span class="medal" tabindex="0" data-tip="${WINNERS[gid]}" aria-label="${WINNERS[gid]}">🏅</span>` : '';
 const lineColor = i => `hsl(${(18 + i * 137.5) % 360} 42% 62%)`;
 const mskDate = ts => new Date(new Date(ts).getTime() + 3 * 3600e3).toISOString().slice(0, 10);
 const byDay = pts => {
@@ -178,7 +186,7 @@ function paintGames() {
     if (['downloads', 'rating_avg', 'ratings_count', 'jam_points', 'jam_voters', 'expert_points'].includes(k)) {
       const v = val(g, k); return v == null ? '—' : (k === 'rating_avg' ? v : fmt(v));
     }
-    if (k === 'title') return `<a href="https://dustore.ru/g/${g.game_id}" target="_blank" rel="noopener" style="color:inherit">${g[k]}</a>`;
+    if (k === 'title') return `<a href="https://dustore.ru/g/${g.game_id}" target="_blank" rel="noopener" style="color:inherit">${g[k]}</a>${medal(g.game_id)}`;
     return g[k] ?? '—';
   };
   // стрелка есть у каждого заголовка, у несортированных невидима — ширина колонок не прыгает
