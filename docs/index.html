@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>К.О.Н.Т.У.Р. — дашборд джема</title>
+<title>К.О.Н.Т.У.Р. — итоги джема</title>
+<meta name="description" content="Итоги джема по вселенной «К.О.Н.Т.У.Р.» на Dustore: победители, таблица всех работ и ссылки.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=11">
 <link rel="icon" type="image/jpeg" href="icon.jpg">
-<script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
 </head>
 <body>
 <div class="wrap">
@@ -17,83 +17,57 @@
   <header>
     <div>
       <h1>К.О.Н.Т.У.<span>Р.</span> джем · Dustore</h1>
-      <div class="sub">
-        <span id="sub">загрузка…</span>
-        <a href="https://dustore.ru/jams/vote.php?id=12" target="_blank" rel="noopener" class="sub-link">Ссылка на джем ↗</a>
-      </div>
-    </div>
-    <div class="countdown">
-      <b id="cd">—</b>
-      <small>до конца голосования</small>
+      <div class="sub">Голосование завершено · итоги объявлены 01.10.2026</div>
     </div>
   </header>
 
-  <div class="kpis" id="kpis"></div>
-
-  <section id="sec-lb" hidden>
-    <h2>Лидерборд джема</h2>
-    <div class="card">
-      <div class="card-head">
-        <h3 id="lb-title">Очки по работам</h3>
-        <div class="seg" id="seg-lb"></div>
-      </div>
-      <div class="chart tall" id="ch-lb"></div>
-    </div>
-    <div class="card" style="margin-top:14px">
-      <div class="card-head">
-        <h3>Динамика очков по дням</h3>
-        <div class="seg" id="seg-top"></div>
-      </div>
-      <div class="chart tall" id="ch-trend"></div>
-    </div>
-  </section>
-
   <section>
-    <h2>Работы</h2>
-    <div class="controls">
-      <label class="muted" for="mine">Ваша работа:</label>
-      <select id="mine"><option value="">— не выбрана —</option></select>
-      <div class="seg" id="seg-works" style="margin-left:auto"></div>
-    </div>
-    <!-- ИЗМЕНЕНО: убрал style="grid-column: 1 / -1;" чтобы все три графика были в одной строке -->
-    <div class="grid g3">
-      <div class="card"><h3>Голоса и средние очки</h3><div class="chart tall" id="ch-votes-avgpts"></div></div>
-      <div class="card"><h3>Отзывы и оценка</h3><div class="chart tall" id="ch-reviews-rating"></div></div>
-      <div class="card"><h3>Скачивания и очки</h3><div class="chart tall" id="ch-scatter-pts"></div></div>
-    </div>
-    <div class="tbl-wrap" style="margin-top:14px"><table id="tbl"></table></div>
-    <div class="note">Оценка — это отзывы каталога Dustore, а не очки джема: жюри их не учитывает.</div>
-  </section>
-
-  <section>
-    <h2>Голосование</h2>
+    <h2>Победители</h2>
     <div class="grid g2">
-      <div class="card"><h3>Голоса по дням</h3><div class="chart" id="ch-votes"></div></div>
-      <div class="card"><h3>Скачивания по дням</h3><div class="chart" id="ch-dl"></div></div>
+      <a class="card win" href="https://dustore.ru/g/203" target="_blank" rel="noopener">
+        <div class="win-top"><span class="nom">🏆 Выбор сообщества Dustore</span></div>
+        <div class="game">К.О.Н.Т.У.Р. Universe <span class="arrow">↗</span></div>
+        <p class="desc">Кооперативный хоррор до 4 игроков на объектах, заражённых грибком О-41.</p>
+        <div class="muted">1 место · 767 очков · 109 голосов</div>
+      </a>
+      <a class="card win" href="https://dustore.ru/g/242" target="_blank" rel="noopener">
+        <div class="win-top"><span class="nom">🏆 Выбор К.О.Н.Т.У.Р.</span></div>
+        <div class="game">Звоните 0-41 <span class="arrow">↗</span></div>
+        <p class="desc">Нарративный симулятор диспетчера во вселенной К.О.Н.Т.У.Р.</p>
+        <div class="muted">2 место · 642 очка · 87 голосов</div>
+      </a>
     </div>
   </section>
 
   <section>
     <h2>Джем в цифрах</h2>
-    <div class="grid g3">
-      <div class="card"><h3>Движки</h3><div class="chart" id="ch-engines"></div></div>
-      <div class="card"><h3>Жанры</h3><div class="chart" id="ch-genres"></div></div>
-      <div class="card"><h3>Города</h3><div class="chart" id="ch-geo"></div></div>
-      <div class="card"><h3>Размеры сборок</h3><div class="chart" id="ch-buckets"></div></div>
-      <div class="card"><h3>Размер команд</h3><div class="chart" id="ch-teams"></div></div>
-      <div class="card"><h3>Загрузки билдов по дням</h3><div class="chart" id="ch-uploads"></div></div>
+    <div class="g4 two" id="kpis"></div>
+  </section>
+
+  <section>
+    <h2>Итоговая таблица</h2>
+    <div class="tbl-wrap"><table id="tbl"></table></div>
+  </section>
+
+  <section>
+    <h2>Ссылки</h2>
+    <div class="g4 links">
+      <a href="https://dustore.ru/g/242" target="_blank" rel="noopener">
+        <b>Звоните 0-41</b><span>наша игра на Dustore</span>
+      </a>
+      <a href="https://dustore.ru/jams/vote.php?id=12" target="_blank" rel="noopener">
+        <b>Страница джема</b><span>все работы и голосование</span>
+      </a>
+      <a href="https://t.me/Call_041" target="_blank" rel="noopener">
+        <b>Telegram</b><span>сообщество игры «Звоните 0-41»</span>
+      </a>
+      <a href="https://github.com/Craide/kontur-jam-dashboard" target="_blank" rel="noopener">
+        <b>GitHub</b><span>исходники дашборда</span>
+      </a>
     </div>
   </section>
 
-  <footer>
-    <div class="foot-links">
-      <a href="https://dustore.ru/g/242" target="_blank" rel="noopener">Игра разработчика</a>
-      <a href="https://t.me/Call_041" target="_blank" rel="noopener">Telegram разработчика</a>
-      <a href="https://dustore.ru/jams/vote.php?id=12" target="_blank" rel="noopener">Ссылка на джем</a>
-      <a href="https://github.com/Craide/kontur-jam-dashboard" target="_blank" rel="noopener">Github</a>
-    </div>
-  </footer>
 </div>
-<script src="app.js?v=9"></script>
+<script src="results.js?v=11"></script>
 </body>
 </html>
